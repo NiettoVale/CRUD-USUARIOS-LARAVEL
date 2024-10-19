@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
 use App\Http\Requests\UserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -22,7 +24,7 @@ class UserController extends Controller
 
     public function create()
     {
-        return view('usuarios.create');
+        return view('usuarios.auth.create');
     }
 
     /**
@@ -67,5 +69,67 @@ class UserController extends Controller
             // Volvemos al formulario e informamos que algo salió mal.
             return redirect()->back()->with('error', 'Ocurrió un error al crear el usuario.');
         }
+    }
+
+    /**
+     * Muestra el formulario de inicio de sesión.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function formularioLogin()
+    {
+        return view('usuarios.auth.login');
+    }
+
+    /**
+     * Maneja la solicitud de inicio de sesión.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function login(LoginRequest $request)
+    {
+        try {
+            // Obtenemos las credenciales
+            $credenciales = [
+                'email' => $request->email,
+                'password' => $request->password,
+            ];
+
+            // Intentamos autenticar al usuario
+            if (Auth::attempt($credenciales)) {
+                // Autenticacion exitosa:
+                return redirect()->route('home')->with('success', 'Inicio de sesión exitoso.');
+            }
+
+            // Si la autenticacion falla verificamos que credencial es la incorrecta
+            $user = User::where('email', $request->emal)->first();
+
+            if ($user) {
+                // El email es correcto, pero la contraseña es incorrecta
+                return redirect()->back()->withErrors([
+                    'password' => 'La contraseña es incorrecta.'
+                ]);
+            } else {
+                // El email no existe
+                return redirect()->back()->withErrors([
+                    'email' => 'El correo electrónico no está registrado.'
+                ]);
+            }
+        } catch (\Exception $e) {
+        }
+    }
+
+    /**
+     * Cierra la sesión del usuario.
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+
+    public function logout()
+    {
+        Auth::logout();
+
+        return redirect()->route('login')->with('success', 'Cierre de sesión exitoso.');
     }
 }
