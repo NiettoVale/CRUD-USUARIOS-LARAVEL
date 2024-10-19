@@ -36,5 +36,6 @@
         @enderror
 
         <button>Registrarse</button>
+        <a href="{{ route('login') }}">Iniciar Sesión</a>
     </form>
 @endsection

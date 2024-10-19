@@ -24,7 +24,7 @@ class UserController extends Controller
 
     public function create()
     {
-        return view('usuarios.auth.create');
+        return view('usuarios.auth.registro');
     }
 
     /**
